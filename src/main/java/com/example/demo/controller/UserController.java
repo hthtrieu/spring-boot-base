@@ -3,17 +3,20 @@ package com.example.demo.controller;
 import com.example.demo.entity.UserEntity;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("users")
+@RequestMapping("api/v1/users")
 class UserController {
+
     @Autowired
     private UserService userService;
 
@@ -23,19 +26,32 @@ class UserController {
     }
 
     @PostMapping()
-    @Operation(summary = "Create a new user", description = "Creates and returns the new user")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "User object to be created",
-            required = true,
-            content = @Content(
-                    mediaType = "application/json",
-                    examples = @ExampleObject(
-                            name = "New User Example",
-                            value = "{\"name\": \"user\", \"email\": \"user@example.com\",\"password\": \"password\"}"
+    @Operation(
+            summary = "Create a new user",
+            description = "Creates and returns the new user",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "User object to be created",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "New User Example",
+                                    value = "{\"username\": \"user\", \"email\": \"user@example.com\",\"password\": \"password\"}"
+                            )
                     )
             )
     )
-    UserEntity createUser(@RequestBody UserEntity user) {
+    public UserEntity createUser(@Valid @RequestBody() UserEntity user) {
         return this.userService.createUser(user);
+    }
+
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search users by username",
+            description = "Finds users by their username, supports pagination"
+
+    )
+    public Page<UserEntity> findByUserName(@RequestParam("username") String username, Pageable pageable) {
+        return this.userService.findByUserName(username, pageable);
     }
 }
